@@ -1,21 +1,41 @@
-PostgreSQL:
+pg-master:
   restart: always
-  image: sameersbn/postgresql:9.6-2
+  image: aukhan/postgresql:10
+  container_name: pg-master
   ports:
     - "5432:5432"
   environment:
     - DEBUG=false
 
-    - DB_USER=
-    - DB_PASS=
-    - DB_NAME=
+    - DB_USER=root
+    - DB_PASS=password
+    - DB_NAME=test_db
     - DB_TEMPLATE=
 
     - DB_EXTENSION=
 
-    - REPLICATION_MODE=
-    - REPLICATION_USER=
-    - REPLICATION_PASS=
+    - REPLICATION_MODE=master
+    - REPLICATION_USER=replicator
+    - REPLICATION_PASS=replpassword
     - REPLICATION_SSLMODE=
-  volumes:
-    - /srv/docker/postgresql:/var/lib/postgresql
+
+pg-slave:
+  restart: always
+  image: aukhan/postgresql:10
+  container_name: pg-slave
+  ports:
+    - "5433:5433"
+  links:
+    - "PG-master:master"
+  environment:
+    - DEBUG=false
+
+    - REPLICATION_MODE=slave
+    - REPLICATION_HOST=master
+    - REPLICATION_USER=replicator
+    - REPLICATION_PASS=replpassword
+    - REPLICATION_SSLMODE=
+  # To persist data you need to create a local dir
+  # /srv/docker/postgresql so it can be mapped to the container
+  # volumes:
+  #   - /srv/docker/postgresql:/var/lib/postgresql
